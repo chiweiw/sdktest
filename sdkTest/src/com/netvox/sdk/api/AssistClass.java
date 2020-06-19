@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import javassist.*;
+import javassist.bytecode.AccessFlag;
 
 /**
  * 创建一个新类
@@ -25,11 +26,16 @@ public class AssistClass {
 				return;
 
 			}
+			  // 添加一个object类型的共有属性
+	        CtField fieldId = new CtField(CtClass.voidType, "returnValue", clazz);
+	        fieldId.setModifiers(AccessFlag.PUBLIC);
+	        clazz.addField(fieldId);
 			//添加接口
 			for (String s : listenerList) {
 				clazz.setInterfaces(new CtClass[] { pool.makeInterface(s) });
 				  CtMethod eat = CtNewMethod.make(
-			                "public void"+s+"(String seq,ArrayList<Object> arr){ System.out.println(\"执行hello方法，\");}"
+			                "public void"+s+"(String seq,Object arr){"
+			                		+ " this.returnValue = arr;}"
 			                ,clazz
 			        );
 				  clazz.addMethod(eat);

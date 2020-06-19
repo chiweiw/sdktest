@@ -103,8 +103,9 @@ public class SdkGui extends JFrame {
 	private Consts constsHolder = ConstsHolder.getInstance();
 
 	private API apiHolder = APIImpl.GetInstance();
+	
 	/**
-	 * main方法，先注释掉
+	 * main方法，先注释掉156456456
 	 */
 //	public static void main(String[] args) {
 //		EventQueue.invokeLater(new Runnable() {
