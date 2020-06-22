@@ -30,8 +30,7 @@ public class AssistClass {
 			// 添加依赖包
 			pool.importPackage("com.netvox.sdk.utils.Consts");
 			CtClass clazz = pool.makeClass("com.netvox.sdk.api.Employ");
-			if (listenerList == null || 
-					listenerList.size() == 0) {
+			if (listenerList == null || listenerList.size() == 0) {
 				return;
 			}
 			// 添加一个object类型的共有属性
@@ -44,11 +43,11 @@ public class AssistClass {
 				clazz.setInterfaces(new CtClass[] { pool.makeInterface(s) });
 
 			}
-
+//			+ "Consts.getConsts.setattr = arr;
 			// 接口的实现类，将值传递给常量
 			for (String s : methodList) {
-				CtMethod eat = CtNewMethod.make("public void" + s + "(String seq,Object arr){"
-						+ " this.returnValue = arr;" + "Consts.getConsts.setattr = arr }", clazz);
+				CtMethod eat = CtNewMethod.make(
+						"public void" + s + "(String seq,Object arr){" + " this.returnValue = arr;" + " }", clazz);
 				clazz.addMethod(eat);
 			}
 

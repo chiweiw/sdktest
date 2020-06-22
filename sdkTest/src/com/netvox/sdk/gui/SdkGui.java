@@ -24,6 +24,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.event.ListSelectionListener;
 
+import com.netvox.sdk.api.AssistClass;
 import com.netvox.sdk.login.Base;
 import com.netvox.sdk.login.LoginHolder;
 import com.netvox.sdk.utils.ClassUtils;
@@ -33,10 +34,14 @@ import com.netvox.smarthome.common.api.APIImpl;
 import com.netvox.smarthome.common.api.config.Config;
 import com.netvox.smarthome.common.api.model.cloud.HouseInfo;
 
+import javassist.CannotCompileException;
+import javassist.NotFoundException;
+
 import javax.swing.event.ListSelectionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.IOException;
 import java.awt.event.ActionEvent;
 
 /**
@@ -301,7 +306,21 @@ public class SdkGui extends JFrame {
 		addtest = new JButton("测 试");
 		addtest.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("1111111111111");
+
+				List<String> methodList = getListenerMethod(new ArrayList<String>(selcetListenerSet));
+
+				try {
+					AssistClass.creatNewClass(new ArrayList<String>(selcetListenerSet), methodList);
+				} catch (CannotCompileException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (NotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		addtest.setBounds(503, 622, 93, 38);
@@ -525,8 +544,7 @@ public class SdkGui extends JFrame {
 			}
 		}
 
-		// class
-		// clazz = Class.forName("com.netvox.smarthome.common.api.API");
+		System.out.println("methodList " + methodList);
 		return methodList;
 	}
 }
