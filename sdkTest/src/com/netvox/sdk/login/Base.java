@@ -5,12 +5,10 @@ import java.util.ArrayList;
 import com.netvox.sdk.api.APIHolder;
 import com.netvox.sdk.gui.SdkGui;
 import com.netvox.sdk.utils.Consts;
-import com.netvox.sdk.utils.ConstsHolder;
 import com.netvox.smarthome.common.api.API;
 import com.netvox.smarthome.common.api.config.Config;
 import com.netvox.smarthome.common.api.event.listener.cloud.OnHouseListListener;
 import com.netvox.smarthome.common.api.event.listener.cloud.OnMQTTConnectListener;
-//import com.netvox.smarthome.common.api.event.listener.cloud.RoomListListener;
 import com.netvox.smarthome.common.api.event.listener.shc.RoomListListener;
 import com.netvox.smarthome.common.api.model.cloud.HouseInfo;
 import com.netvox.smarthome.common.api.model.cloud.MQTTConnectResult;
@@ -25,19 +23,18 @@ import com.netvox.smarthome.common.api.model.shc.RoomInfo;
 public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomListListener {
 
 	private API api = APIHolder.getInstance();
-	Consts consts = ConstsHolder.getInstance();
+
 
 	// 登录并获取账号下所有网关
 	public void execute() {
-		// api = APIImpl.GetInstance();
 
 		//// 初始化
 		api.Init();
 		// 添加监听
 		api.AddListener(this);
 		// 设置用户名和密码
-		Config.getConfig().setUserName(consts.getUSER_NAME());
-		Config.getConfig().setPassWord(consts.getPASSWORD());
+		// Config.getConfig().setUserName(consts.getUSER_NAME());
+		// Config.getConfig().setPassWord(consts.getPASSWORD());
 		// 获取用户账号下所有网关
 		api.GetAllHomes(1, 0);
 	}
@@ -86,11 +83,9 @@ public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomLis
 
 		SdkGui frame = SdkGui.getInstance();
 		frame.getReturnValue().setText("22222222222222\n22222222222");
-		consts.setHouses(houses);
-//	        int houseItem = HouseIeeeChoose.chooseHouse(houses);
-//	        Config.getConfig().setHouseInfo(houses.get(houseItem));//
 
-//	        System.out.println("-----------OnHouseListListener-----------");
+		Consts.getConsts().setHouses(houses);
+
 
 	}
 }

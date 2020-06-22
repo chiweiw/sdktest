@@ -15,6 +15,20 @@ public class Consts {
 
 	private List<HouseInfo> houses;
 
+	private Object attr;
+
+	private static Consts consts;
+
+	private Consts() {
+	}
+
+	public static Consts getConsts() {
+		if (consts == null) {
+			consts = new Consts();
+		}
+		return consts;
+	}
+
 	public String getUSER_NAME() {
 		return USER_NAME;
 	}
@@ -46,5 +60,14 @@ public class Consts {
 	public void setHouses(List<HouseInfo> houses) {
 		this.houses = houses;
 	}
+
+	public Object getAttr() {
+		return attr;
+	}
+
+	public void setAttr(Object attr) {
+		this.attr = attr;
+	}
+	
 
 }

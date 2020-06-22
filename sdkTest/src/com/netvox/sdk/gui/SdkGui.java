@@ -28,7 +28,6 @@ import com.netvox.sdk.login.Base;
 import com.netvox.sdk.login.LoginHolder;
 import com.netvox.sdk.utils.ClassUtils;
 import com.netvox.sdk.utils.Consts;
-import com.netvox.sdk.utils.ConstsHolder;
 import com.netvox.smarthome.common.api.API;
 import com.netvox.smarthome.common.api.APIImpl;
 import com.netvox.smarthome.common.api.config.Config;
@@ -94,18 +93,17 @@ public class SdkGui extends JFrame {
 	private Set<String> selcetListenerSet = new HashSet<String>();// 被选中listener的集合
 	private JButton addListener; // 添加监听
 	private JButton cancelListener; // 删除所有监听
+	private JButton addtest;// 点击测试
 
 	private List<HouseInfo> houseInfoList;
 
 	// 获取login实例
 	private Base loginExamples = LoginHolder.getInstance();
-	// 获取consts单例
-	private Consts constsHolder = ConstsHolder.getInstance();
 
 	private API apiHolder = APIImpl.GetInstance();
-	
+
 	/**
-	 * main方法，先注释掉156456456
+	 * main方法，先注释掉
 	 */
 //	public static void main(String[] args) {
 //		EventQueue.invokeLater(new Runnable() {
@@ -200,7 +198,7 @@ public class SdkGui extends JFrame {
 				// 根据获取到的网关列表 生成combox
 
 				houseIeeeList.removeAll();
-				houseInfoList = constsHolder.getHouses();
+				houseInfoList = Consts.getConsts().getHouses();
 
 				if (houseInfoList == null || houseInfoList.isEmpty()) {
 					return;
@@ -298,16 +296,17 @@ public class SdkGui extends JFrame {
 		});
 		cancelListener.setBounds(314, 461, 75, 23);
 		contentPane.add(cancelListener);
-		
-		//测试，点击后生成类并开启测试
-		JButton testFunction = new JButton("测  试");
-		testFunction.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				
+
+		// 生成类并测试
+		addtest = new JButton("测 试");
+		addtest.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("1111111111111");
 			}
 		});
-		testFunction.setBounds(504, 622, 116, 31);
-		contentPane.add(testFunction);
+		addtest.setBounds(503, 622, 93, 38);
+		contentPane.add(addtest);
+
 	}
 
 	/**
@@ -395,7 +394,7 @@ public class SdkGui extends JFrame {
 			}
 		}
 
-		//刷新画面
+		// 刷新画面
 		this.panel.repaint();
 
 	}
@@ -480,8 +479,11 @@ public class SdkGui extends JFrame {
 	 * 登录
 	 */
 	private void setAndLogin() {
-		System.out.println(username.getText());
-		System.out.println(password.getText());
+		// System.out.println(username.getText());
+		// System.out.println(password.getText());
+		// 设置用户名和密码
+		Config.getConfig().setUserName(username.getText());
+		Config.getConfig().setPassWord(password.getText());
 		loginExamples.execute();
 	}
 
@@ -489,17 +491,17 @@ public class SdkGui extends JFrame {
 	 * 根据listener反射获取接口的方法
 	 */
 	private List<String> getListenerMethod(List<String> listenerList) {
-		if (listenerList == null && listenerList.size() == 0) {
+		if (listenerList == null || listenerList.size() == 0) {
 			return null;
 		}
 
-		//所有listener的方法，返回用
+		// 所有listener的方法，返回用
 		List<String> methodList = new ArrayList<>(listenerList.size());
 		Class<?> clazz = null;
 		Method[] methods = null;
 		for (String s : listenerList) {
 			try {
-				//反射获取接口
+				// 反射获取接口
 				if (cbList.contains(s)) {
 					clazz = Class.forName("com.netvox.smarthome.common.api.event.listener.cb." + s);
 				}
@@ -515,7 +517,7 @@ public class SdkGui extends JFrame {
 				e.printStackTrace();
 			}
 			methods = clazz.getMethods();
-			//将监听的方法传输list
+			// 将监听的方法传输list
 			if (methods != null) {
 				for (Method method : methods) {
 					methodList.add(method.getName());
