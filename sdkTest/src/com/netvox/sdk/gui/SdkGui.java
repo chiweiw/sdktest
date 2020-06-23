@@ -85,7 +85,6 @@ public class SdkGui extends JFrame {
 	private JTextField textField_5;
 	private JPanel panel;
 	private JList jMethodList;
-	private JList jSelectListener;// 被选中的监听器列表
 	private JList jListListener;// 所有监听的集合
 	private List<String> methodList;// 所有方法
 	private Set<String> cbSets;// com.netvox.smarthome.common.api.event.listener.cb 下的所有监听类
@@ -96,8 +95,6 @@ public class SdkGui extends JFrame {
 	private List<String> shcList;
 	private List<String> listenerList;// 所有listener类名称的集合
 	private Set<String> selcetListenerSet = new HashSet<String>();// 被选中listener的集合
-	private JButton addListener; // 添加监听
-	private JButton cancelListener; // 删除所有监听
 	private JButton addtest;// 点击测试
 
 	private List<HouseInfo> houseInfoList;
@@ -230,11 +227,6 @@ public class SdkGui extends JFrame {
 		contentPane.add(panel);
 		panel.setLayout(null);
 
-		// 被选中的监听器列表
-		jSelectListener = new JList();
-		jSelectListener.setBounds(221, 32, 173, 135);
-		contentPane.add(jSelectListener);
-
 		// 方法列表
 		jMethodList = new JList();
 		// 初始化方法列表
@@ -271,44 +263,22 @@ public class SdkGui extends JFrame {
 		contentPane.add(returnValue);
 		returnValue.setColumns(10);
 
-		// 添加监听
-		addListener = new JButton("添加");
-		addListener.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-
-				selcetListenerSet.add(jListListener.getSelectedValue().toString());
-				DefaultListModel<String> dlm = new DefaultListModel();
-
-				for (String str : selcetListenerSet) {
-
-					dlm.addElement(str);
-				}
-				jSelectListener.setModel(dlm);
-			}
-
-		});
-		addListener.setBounds(221, 461, 73, 23);
-		contentPane.add(addListener);
-
-		// 清空所有已经添加的监听
-		cancelListener = new JButton("清空");
-		cancelListener.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				selcetListenerSet.clear();
-				DefaultListModel<String> dlm = new DefaultListModel();
-				jSelectListener.setModel(dlm);
-			}
-		});
-		cancelListener.setBounds(314, 461, 75, 23);
-		contentPane.add(cancelListener);
-
 		// 生成类并测试
 		addtest = new JButton("测 试");
 		addtest.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
-				List<String> methodList = getListenerMethod(new ArrayList<String>(selcetListenerSet));
+				List<String> attr = new ArrayList<String>();
+				attr.add(jListListener.getSelectedValue().toString());
+				// 方法名称
+				List<String> methodList = getListenerMethod(attr);
+				// 接口名称
+				String interfaceName = jListListener.getSelectedValue().toString();
 
+				String interPackName = getInterfacePackageName(interfaceName);
+				System.out.println("methodList " + methodList);
+				System.out.println(" interfaceName " + interfaceName);
+				System.out.println("interPackName " + interPackName);
 				try {
 					AssistClass.creatNewClass(new ArrayList<String>(selcetListenerSet), methodList);
 				} catch (CannotCompileException e1) {
@@ -544,7 +514,28 @@ public class SdkGui extends JFrame {
 			}
 		}
 
-		System.out.println("methodList " + methodList);
+		// System.out.println("methodList " + methodList);
 		return methodList;
+	}
+
+	/**
+	 * 根据接口名称返回包名
+	 * 
+	 * @param interNmae
+	 * @return
+	 */
+	private String getInterfacePackageName(String interNmae) {
+		// 反射获取接口
+		if (cbList.contains(interNmae)) {
+			return "com.netvox.smarthome.common.api.event.listener.cb." + interNmae;
+		}
+		if (cloudList.contains(interNmae)) {
+			return "com.netvox.smarthome.common.api.event.listener.cloud." + interNmae;
+		}
+		if (shcList.contains(interNmae)) {
+			return "com.netvox.smarthome.common.api.event.listener.shc." + interNmae;
+
+		}
+		return null;
 	}
 }

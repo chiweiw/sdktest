@@ -25,6 +25,7 @@ public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomLis
 	private API api = APIHolder.getInstance();
 
 
+	
 	// 登录并获取账号下所有网关
 	public void execute() {
 
@@ -82,7 +83,7 @@ public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomLis
 		System.out.println(houses);
 
 		SdkGui frame = SdkGui.getInstance();
-		frame.getReturnValue().setText("22222222222222\n22222222222");
+		//frame.getReturnValue().setText("22222222222222\n22222222222");
 
 		Consts.getConsts().setHouses(houses);
 

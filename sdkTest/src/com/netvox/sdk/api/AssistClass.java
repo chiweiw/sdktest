@@ -13,7 +13,7 @@ import javassist.NotFoundException;
 import javassist.bytecode.AccessFlag;
 
 /**
- * 创建一个新类
+ * 修改apiassist
  * 
  * @author Administrator
  *
@@ -45,9 +45,12 @@ public class AssistClass {
 			}
 //			+ "Consts.getConsts.setattr = arr;
 			// 接口的实现类，将值传递给常量
+			//System.out.println("public void" + methodList.get(0) + "(String seq,Object arr){" + " this.returnValue = arr;" + " }");
 			for (String s : methodList) {
+				System.out.println(s);
 				CtMethod eat = CtNewMethod.make(
-						"public void" + s + "(String seq,Object arr){" + " this.returnValue = arr;" + " }", clazz);
+						"public void " + s + "(String seq,Object arr){" + " this.returnValue = arr;\n" + 
+				" }", clazz);
 				clazz.addMethod(eat);
 			}
 
