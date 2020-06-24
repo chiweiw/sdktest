@@ -24,7 +24,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.event.ListSelectionListener;
 
-import com.netvox.sdk.api.AssistClass;
+import com.netvox.sdk.javassist.AssistClass;
 import com.netvox.sdk.login.Base;
 import com.netvox.sdk.login.LoginHolder;
 import com.netvox.sdk.utils.ClassUtils;
@@ -276,21 +276,11 @@ public class SdkGui extends JFrame {
 				String interfaceName = jListListener.getSelectedValue().toString();
 
 				String interPackName = getInterfacePackageName(interfaceName);
-				System.out.println("methodList " + methodList);
-				System.out.println(" interfaceName " + interfaceName);
-				System.out.println("interPackName " + interPackName);
-				try {
-					AssistClass.creatNewClass(new ArrayList<String>(selcetListenerSet), methodList);
-				} catch (CannotCompileException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (NotFoundException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+//				System.out.println("methodList " + methodList);
+//				System.out.println(" interfaceName " + interfaceName);
+//				System.out.println("interPackName " + interPackName);
+				AssistClass.creatNewClass(interfaceName, methodList, interPackName);
+				
 			}
 		});
 		addtest.setBounds(503, 622, 93, 38);

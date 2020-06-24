@@ -37,6 +37,7 @@ public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomLis
 		// Config.getConfig().setUserName(consts.getUSER_NAME());
 		// Config.getConfig().setPassWord(consts.getPASSWORD());
 		// 获取用户账号下所有网关
+//		 private String cloudMngIp = "mng.netvoxcloud.com";
 		api.GetAllHomes(1, 0);
 	}
 
