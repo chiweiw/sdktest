@@ -6,8 +6,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -99,6 +101,12 @@ public class SdkGui extends JFrame {
 
 	private List<HouseInfo> houseInfoList;
 
+	private List<Map<String, Object>> inputAttr;// 用户输入的数据
+
+	private String methodName;// 选中的方法名称
+
+	private List<JTextField> testList;
+
 	// 获取login实例
 	private Base loginExamples = LoginHolder.getInstance();
 
@@ -137,10 +145,11 @@ public class SdkGui extends JFrame {
 
 		ipaddress = new JTextField();
 		ipaddress.setBounds(504, 44, 149, 21);
+		ipaddress.setText("mng.netvoxcloud.com");
 		contentPane.add(ipaddress);
 		ipaddress.setColumns(10);
 
-		JLabel lblNewLabel_1 = new JLabel("姓  名");
+		JLabel lblNewLabel_1 = new JLabel("用 户 名");
 		lblNewLabel_1.setBounds(421, 89, 54, 15);
 		contentPane.add(lblNewLabel_1);
 
@@ -223,7 +232,7 @@ public class SdkGui extends JFrame {
 		// 参数列表
 		panel = new JPanel();
 		panel.setToolTipText("参数列表");
-		panel.setBounds(444, 253, 209, 359);
+		panel.setBounds(421, 253, 232, 359);
 		contentPane.add(panel);
 		panel.setLayout(null);
 
@@ -234,7 +243,8 @@ public class SdkGui extends JFrame {
 		// 添加监听
 		jMethodList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
-				methodVlusechange(arg0);
+				if (!jMethodList.getValueIsAdjusting())
+					methodVlusechange(arg0);
 			}
 		});
 		jMethodList.setBounds(10, 32, 181, 424);
@@ -276,11 +286,22 @@ public class SdkGui extends JFrame {
 				String interfaceName = jListListener.getSelectedValue().toString();
 
 				String interPackName = getInterfacePackageName(interfaceName);
-//				System.out.println("methodList " + methodList);
-//				System.out.println(" interfaceName " + interfaceName);
-//				System.out.println("interPackName " + interPackName);
-				AssistClass.creatNewClass(interfaceName, methodList, interPackName);
-				
+
+				List<Object> astrList = new ArrayList<>(testList.size());
+				for (JTextField c : testList) {
+					astrList.add(c.getText());
+					System.out.println(" input test " + c.getText());
+				}
+				try {
+					inputAttr = addinput(inputAttr, testList);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				System.out.println(inputAttr.toString());
+				// 生成方法并调用
+				AssistClass.creatNewClass(interfaceName, methodList, interPackName, methodName, inputAttr);
+
 			}
 		});
 		addtest.setBounds(503, 622, 93, 38);
@@ -297,6 +318,12 @@ public class SdkGui extends JFrame {
 		this.panel.removeAll();
 		Class<?> clazz = null;
 		Method[] methods = null;
+		// 将选中的方法名称赋值
+		methodName = jMethodList.getSelectedValue().toString();
+		// 清空用户输入
+
+		inputAttr = new ArrayList<Map<String, Object>>();
+
 		try {
 			clazz = Class.forName("com.netvox.smarthome.common.api.API");
 		} catch (ClassNotFoundException e) {
@@ -311,67 +338,96 @@ public class SdkGui extends JFrame {
 				// 参数类型
 				Class[] parameterTypes = method.getParameterTypes();
 
+				for (Class c : parameterTypes) {
+					Map<String, Object> map1 = new HashMap<String, Object>();
+					if (c.getName().contains(".")) {
+						// 截取最后一段
+						map1.put("paramType", c.getName().substring(1 + c.getName().lastIndexOf(".")));
+					} else {
+						map1.put("paramType", c.getName());
+					}
+					System.out.println(map1);
+					inputAttr.add(map1);
+				}
 				// 参数名称
 				String[] parameterNames = new String[parameterTypes.length];
 				for (int i = 0; i < method.getParameters().length; i++) {
 					parameterNames[i] = method.getParameters()[i].getName();
 				}
 
+				testList = new ArrayList<JTextField>();
 				int count = parameterTypes.length;
 				switch (count) {
 				case 6:
+					JLabel lblNewLabel_9 = new JLabel(parameterNames[5]);
+					lblNewLabel_9.setBounds(10, 275, 80, 15);
+					panel.add(lblNewLabel_9);
+
+					textField_5 = new JTextField();
+					textField_5.setBounds(97, 272, 81, 21);
+					panel.add(textField_5);
+					textField_5.setColumns(10);
+					testList.add(textField_5);
+
 					break;
 				case 5:
-					JLabel lblNewLabel_8 = new JLabel(parameterNames[2]);
-					lblNewLabel_8.setBounds(10, 225, 54, 15);
+					JLabel lblNewLabel_8 = new JLabel(parameterNames[4]);
+					lblNewLabel_8.setBounds(10, 225, 80, 15);
 					panel.add(lblNewLabel_8);
 
-					textField_2 = new JTextField();
-					textField_2.setBounds(97, 222, 81, 21);
-					panel.add(textField_2);
-					textField_2.setColumns(10);
+					textField_4 = new JTextField();
+					textField_4.setBounds(97, 222, 81, 21);
+					panel.add(textField_4);
+					textField_4.setColumns(10);
+					testList.add(textField_4);
 				case 4:
-					JLabel lblNewLabel_7 = new JLabel(parameterNames[2]);
-					lblNewLabel_7.setBounds(10, 175, 54, 15);
+					JLabel lblNewLabel_7 = new JLabel(parameterNames[3]);
+					lblNewLabel_7.setBounds(10, 175, 81, 15);
 					panel.add(lblNewLabel_7);
 
-					textField_2 = new JTextField();
-					textField_2.setBounds(97, 172, 81, 21);
-					panel.add(textField_2);
-					textField_2.setColumns(10);
+					textField_3 = new JTextField();
+					textField_3.setBounds(97, 172, 81, 21);
+					panel.add(textField_3);
+					textField_3.setColumns(10);
+					testList.add(textField_3);
 				case 3:
 					JLabel lblNewLabel_6 = new JLabel(parameterNames[2]);
-					lblNewLabel_6.setBounds(10, 125, 54, 15);
+					lblNewLabel_6.setBounds(10, 125, 81, 15);
 					panel.add(lblNewLabel_6);
 
 					textField_2 = new JTextField();
 					textField_2.setBounds(97, 122, 81, 21);
 					panel.add(textField_2);
 					textField_2.setColumns(10);
+					testList.add(textField_2);
 				case 2:
 					JLabel lblNewLabel_5 = new JLabel(parameterNames[1]);
-					lblNewLabel_5.setBounds(10, 75, 54, 15);
+					lblNewLabel_5.setBounds(10, 75, 81, 15);
 					panel.add(lblNewLabel_5);
 
 					textField_1 = new JTextField();
 					textField_1.setBounds(97, 72, 81, 21);
 					panel.add(textField_1);
 					textField_1.setColumns(10);
+					testList.add(textField_1);
 				case 1:
 					JLabel lblNewLabel_4 = new JLabel(parameterNames[0]);
-					lblNewLabel_4.setBounds(10, 24, 54, 15);
+					lblNewLabel_4.setBounds(10, 24, 150, 15);
 					panel.add(lblNewLabel_4);
 
 					textField = new JTextField();
 					textField.setBounds(97, 21, 81, 21);
 					panel.add(textField);
 					textField.setColumns(10);
+					testList.add(textField);
 				case 0:
 					break;
 
 				}
 			}
 		}
+		Collections.reverse(testList);
+//		System.out.println(testList);
 
 		// 刷新画面
 		this.panel.repaint();
@@ -461,6 +517,8 @@ public class SdkGui extends JFrame {
 		// System.out.println(username.getText());
 		// System.out.println(password.getText());
 		// 设置用户名和密码
+//		 private String cloudMngIp = "mng.netvoxcloud.com";
+		Config.getConfig().setCloudIP(ipaddress.getText());
 		Config.getConfig().setUserName(username.getText());
 		Config.getConfig().setPassWord(password.getText());
 		loginExamples.execute();
@@ -526,6 +584,35 @@ public class SdkGui extends JFrame {
 			return "com.netvox.smarthome.common.api.event.listener.shc." + interNmae;
 
 		}
+		return null;
+	}
+
+	/**
+	 * 将jlist中输入的内容赋给input
+	 * 
+	 * @param input
+	 * @param jlist
+	 * @return
+	 * @throws Exception
+	 */
+	private List<Map<String, Object>> addinput(List<Map<String, Object>> input, List<JTextField> jlist)
+			throws Exception {
+		if (input.size() != jlist.size()) {
+			throw new Exception("input.size != jlist.size,please check it");
+		}
+
+		for (int i = 0; i < input.size(); i++) {
+			if (input.get(i).get("paramType").equals("String") || input.get(i).get("paramType").equals("int")) {
+				input.get(i).put("param", jlist.get(i).getText().toString());
+			} else {
+				System.out.println("暂时不支持该方法");
+			}
+
+		}
+		return input;
+	}
+
+	private String getListenerParamType() {
 		return null;
 	}
 }

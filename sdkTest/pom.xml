@@ -6,13 +6,13 @@
      <dependencies>
 
 
-        <dependency>
-            <groupId>javassist</groupId>
+     <!-- https://mvnrepository.com/artifact/org.javassist/javassist -->
+<dependency>
+    <groupId>org.javassist</groupId>
+    <artifactId>javassist</artifactId>
+    <version>3.20.0-GA</version>
+</dependency>
 
-            <artifactId>javassist</artifactId>
-
-            <version>3.11.0.GA</version>
-        </dependency>
 
     </dependencies>
     
