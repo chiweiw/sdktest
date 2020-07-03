@@ -24,11 +24,22 @@ import javassist.NotFoundException;
 public class AssistClass {
 
 	// public static ClassPool pool = ClassPool.getDefault();
+
+	/**
+	 * 动态生成类
+	 * @param listener 接口名称
+	 * @param methods 接口方法的集合，只有一个方法
+	 * @param package_ 接口的packageName
+	 * @param MethodName api的方法名称
+	 * @param inputAttr 用户输入的方法名称
+	 * @param listenerMethodParamType 接口方法第二个参数的类型
+	 */
 	public static void creatNewClass(String listener, List<String> methods, String package_, String MethodName,
-			List<Map<String, Object>> inputAttr) {
+			List<Map<String, Object>> inputAttr,String listenerMethodParamType) {
 		if (listener == null || methods == null || package_ == null) {
 			return;
 		}
+		System.out.println("listenerMethodParamType  "+listenerMethodParamType);
 
 		// 创建线程池
 		ClassPool pool = ClassPool.getDefault();
@@ -42,18 +53,21 @@ public class AssistClass {
 		pool.importPackage("javax.swing.JTextField");
 
 		CtClass clazz;
-		CtClass clazz1;
 		try {
 
 			clazz = pool.makeClass("com.netvox.sdk.javassist.Apiassist$" + MethodName);
 
 			// 添加接口
 			clazz.setInterfaces(new CtClass[] { pool.makeInterface(listener) });
+//			sout
 //			;
 			// 接口的实现类，将值传递给常量
 			for (String method : methods) {
+				String c = "public void " + method + "(String seq,"+listenerMethodParamType+" arr){\n" +
+						"SdkGui.getInstance().getReturnValue().setText(arr.toString());\n" + " }";
+				System.out.println(c);
 				CtMethod eat = CtNewMethod
-						.make("public void " + method + "(String seq,Object arr){\n" +
+						.make("public void " + method + "(String seq,"+listenerMethodParamType+" arr){\n" +
 				"SdkGui.getInstance().getReturnValue().setText(arr.toString());\n" + " }", clazz);
 				clazz.addMethod(eat);
 			}
@@ -84,7 +98,7 @@ public class AssistClass {
 	}
 
 	/**
-	 * 生成方法主体
+	 * 生成调用api的方法主体
 	 * 
 	 * @param methodName 方法名称
 	 * @param attr
