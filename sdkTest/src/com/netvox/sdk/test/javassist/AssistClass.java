@@ -27,16 +27,15 @@ public class AssistClass {
 	/**
 	 * 动态生成类
 	 *
-	 * @param listener                接口名称
 	 * @param methods                 接口方法的集合，只有一个方法
 	 * @param package_                接口的packageName
 	 * @param MethodName              api的方法名称
 	 * @param inputAttr               用户输入的方法名称
 	 * @param listenerMethodParamType 接口方法第二个参数的类型
 	 */
-	public static Class creatNewClass(String listener, List<String> methods, String package_, String MethodName,
-			List<Map<String, Object>> inputAttr, String listenerMethodParamType) {
-		if (listener == null || methods == null || package_ == null) {
+	public static Class creatNewClass(List<String> methods, String package_, List<Map<String, Object>> inputAttr,
+			String listenerMethodParamType) {
+		if (methods == null || package_ == null) {
 			return null;
 		}
 		System.out.println("listenerMethodParamType  " + listenerMethodParamType);
@@ -54,8 +53,8 @@ public class AssistClass {
 
 			// 获取要继承的类
 			CtClass clazz1 = pool.get("com.netvox.sdk.test.javassist.TestTemplate");
-			clazz = pool.makeClass("com.netvox.sdk.javassist.Apiassist$" + MethodName);
-			// 继承公有类
+			clazz = pool.makeClass("com.netvox.sdk.test.javassist.Apiassist$" + methods.get(0));
+			// 继承公有类methods
 			clazz.setSuperclass(clazz1);
 
 			// 添加接口
@@ -64,12 +63,12 @@ public class AssistClass {
 			// 接口的实现类，将值传递给方法
 			for (String method : methods) {
 				CtMethod eat = CtNewMethod.make("public void " + method + "(String seq," + listenerMethodParamType
-						+ " arr){\n" + "fireEvent(paramString);\n" + " }", clazz);
+						+ " arr){\n" + "fireEvent(seq);\n" + " }", clazz);
 				clazz.addMethod(eat);
 			}
 
 			// api调用的方法
-			String genMethod = generateMethod(MethodName, inputAttr);
+			String genMethod = generateMethod(methods.get(0), inputAttr);
 
 			// 生成并添加方法
 			CtMethod apiUse = CtNewMethod.make(genMethod, clazz);
@@ -105,9 +104,10 @@ public class AssistClass {
 		if (methodName == null || attr == null) {
 			return null;
 		}
-		StringBuffer method = new StringBuffer("public void  sendRequest(");
+		StringBuffer method = new StringBuffer("public void  invoke(");
 		// com.netvox.smarthome.common.api.API
-		StringBuffer apiRequest = new StringBuffer(" com.netvox.sdk.api.APIHolder.getInstance()." + methodName + "(");
+		StringBuffer apiRequest = new StringBuffer(
+				"\ncom.netvox.sdk.test.api.APIHolder.getInstance()." + methodName + "(");
 
 		// 生成方法主体
 		for (int i = 0; i < attr.size(); i++) {

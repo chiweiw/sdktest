@@ -23,13 +23,12 @@ public class BaseInfo implements OnMQTTConnectListener, RoomListListener {
 
 	private API api = APIHolder.getInstance();
 
-
+	
 	
 	// 登录并获取账号下所有网关
 	public void execute() {
-
 		//// 初始化
-		api.Init();
+		//api.Init();
 		// 添加监听
 		api.AddListener(this);
 

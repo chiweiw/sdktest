@@ -19,8 +19,7 @@ public class Consts {
 
 	private static Consts consts;
 
-	private Consts() {
-	}
+	private Consts() {}
 
 	public static Consts getConsts() {
 		if (consts == null) {

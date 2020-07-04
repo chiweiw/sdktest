@@ -27,6 +27,7 @@ import javax.swing.event.ListSelectionListener;
 
 import com.netvox.sdk.test.api.APIHolder;
 import com.netvox.sdk.test.api.Consts;
+import com.netvox.sdk.test.gui.listener.SdkGuiListenerMethods;
 import com.netvox.sdk.test.javassist.AssistClass;
 import com.netvox.sdk.test.javassist.TestTemplate;
 import com.netvox.sdk.test.javassist.interfaces.ConsoleListener;
@@ -44,22 +45,14 @@ import com.netvox.smarthome.common.api.model.cloud.HouseInfo;
  * @author Administrator
  */
 @SuppressWarnings("all")
-public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListener{
+public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListener {
 
     private JPanel contentPane;
     private JTextField ipaddress;
     private JTextField username;
     private JTextField password;
     private JTextField returnValue; // 返回值
-    private LifeCycle testLifeCycle;
-
-    public JTextField getReturnValue() {
-        return returnValue;
-    }
-
-    public void setReturnValue(JTextField returnValue) {
-        this.returnValue = returnValue;
-    }
+    private LifeCycle testLifeCycle; //声明一个生命周期接口
 
     private JTextField textField;
     private JTextField textField_1;
@@ -93,7 +86,6 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
     private BaseInfo loginExamples = new BaseInfo();
 
     private API apiHolder = APIImpl.GetInstance();
-
 
     /**
      * Create the frame.
@@ -136,9 +128,12 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
 
         JButton login = new JButton("登 录");
         login.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 // 登录
-                setAndLogin();
+
+                SdkGuiListenerMethods.setloginInfo(ipaddress.getText(), username.getText(), password.getText());
+                loginExamples.execute();
 
             }
         });
@@ -150,6 +145,7 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
         contentPane.add(houseIeeeList);
         houseIeeeList.addItemListener(new ItemListener() {
             // 选项改变的监听
+            @Override
             public void itemStateChanged(ItemEvent e) {
                 // 如果选项是选中的 并且选项名称不为 请选择网关
                 if (e.getStateChange() == ItemEvent.SELECTED && !(e.getItem().equals("请选择网关"))) {
@@ -171,6 +167,7 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
 
         JButton uodateHouseieee = new JButton("更新网关列表");
         uodateHouseieee.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
 
                 // 根据获取到的网关列表 生成combox
@@ -206,12 +203,17 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
         // 方法列表
         jMethodList = new JList();
         // 初始化方法列表
-        initMethodList("com.netvox.smarthome.common.api.API", jMethodList, true);
+        List<String> methodLists = SdkGuiListenerMethods.initMethodList("com.netvox.smarthome.common.api.API");
+        jMethodList.setListData(methodLists.toArray());
+
         // 添加监听
         jMethodList.addListSelectionListener(new ListSelectionListener() {
+            @Override
             public void valueChanged(ListSelectionEvent arg0) {
-                if (!jMethodList.getValueIsAdjusting())
+                if (!jMethodList.getValueIsAdjusting()) {
                     methodVlusechange(arg0);
+                }
+
             }
         });
         jMethodList.setBounds(10, 32, 181, 424);
@@ -243,6 +245,7 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
         // 生成类并测试
         addtest = new JButton("测 试");
         addtest.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
 
                 List<String> attr = new ArrayList<String>();
@@ -257,37 +260,49 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
                 List<Object> astrList = new ArrayList<>(testList.size());
                 for (JTextField c : testList) {
                     astrList.add(c.getText());
-                    //  System.out.println(" input test " + c.getText());
                 }
                 try {
-                    inputAttr = addinput(inputAttr, testList);
+                    //将input中的数据填充到
+                    inputAttr = SdkGuiListenerMethods.addinput(inputAttr, testList);
                 } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+                String ListenerMethodParamType = getListenerParamType(attr);
+                // 生成方法并调用
+                try {
+                    Class clazz = AssistClass.creatNewClass(methodList, interPackName, inputAttr, ListenerMethodParamType);
+
+                    // new一个对象
+                    Object testObject = clazz.newInstance();
+                    // 获取被调用的对象
+                    TestTemplate tpl = (TestTemplate) testObject;
+                    // 初始化模板
+                    testLifeCycle = (LifeCycle) testObject;
+                    testLifeCycle.init();
+                    tpl.addConsoleOutputListener(SdkGui.this);
+                    // 调用
+
+                    Method methods[] = clazz.getMethods();
+                    for (int i = 0; i < methods.length; i++) {
+                        if (methods[i].getName().equals("invoke")) {
+//							Object []args
+//							methods[i].invoke(testObject, args)
+                        }
+                    }
+                } catch (InstantiationException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                } catch (IllegalAccessException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
-                //  System.out.println(inputAttr.toString());
-               String ListenerMethodParamType =  getListenerParamType(attr);
-//                getListenerParamType
-                // 生成方法并调用
-           try {
-            	   Class clazz = AssistClass.creatNewClass(interfaceName, methodList, interPackName, methodName, inputAttr,ListenerMethodParamType);
-            	   Object testObject = clazz.newInstance();
-            	   TestTemplate tpl = (TestTemplate)testObject;
-            	   testLifeCycle = (LifeCycle)testObject;
-            	   testLifeCycle.init();
-            	   tpl.addConsoleOutputListener(SdkGui.this);
-			} catch (InstantiationException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IllegalAccessException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
             }
         });
         addtest.setBounds(503, 622, 93, 38);
         contentPane.add(addtest);
-        APIHolder.getInstance().AddListener(this);
+        API api = APIHolder.getInstance();
+        api.Init();
+        api.AddListener(SdkGui.this);
     }
 
     /**
@@ -349,7 +364,6 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
                         panel.add(textField_5);
                         textField_5.setColumns(10);
                         testList.add(textField_5);
-
 
                     case 5:
                         JLabel lblNewLabel_8 = new JLabel(parameterNames[4]);
@@ -414,35 +428,6 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
 
     }
 
-    /**
-     * 返回指定class的所有方法
-     *
-     * @param className
-     * @param jList
-     */
-    private List<String> initMethodList(String className, JList jList, Boolean setjList) {
-        List attrList = new ArrayList<String>();
-        try {
-            Class<?> clazz = Class.forName(className);
-
-            Method[] methods = clazz.getMethods();
-
-            for (Method method : methods) {
-                attrList.add(method.getName());
-            }
-
-            Collections.sort(attrList);
-            if (setjList) {
-                jList.setListData(attrList.toArray());
-                return null;
-            }
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return attrList;
-
-    }
 
     /**
      * 初始化listener方法
@@ -488,19 +473,6 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
 
         return str;
 
-    }
-
-    /**
-     * 登录
-     */
-    private void setAndLogin() {
-
-        // 设置用户名和密码
-//		 private String cloudMngIp = "mng.netvoxcloud.com";
-        Config.getConfig().setCloudIP(ipaddress.getText());
-        Config.getConfig().setUserName(username.getText());
-        Config.getConfig().setPassWord(password.getText());
-        loginExamples.execute();
     }
 
     /**
@@ -565,34 +537,10 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
         return null;
     }
 
-    /**
-     * 将jlist中输入的内容赋给input
-     *
-     * @param input
-     * @param jlist
-     * @return
-     * @throws Exception
-     */
-    private List<Map<String, Object>> addinput(List<Map<String, Object>> input, List<JTextField> jlist)
-            throws Exception {
-        if (input.size() != jlist.size()) {
-            throw new Exception("input.size != jlist.size,please check it");
-        }
-
-        for (int i = 0; i < input.size(); i++) {
-            if (input.get(i).get("paramType").equals("String") || input.get(i).get("paramType").equals("int")) {
-                input.get(i).put("param", jlist.get(i).getText().toString());
-            } else {
-                System.out.println("暂时不支持该方法");
-            }
-
-        }
-        return input;
-    }
-
 
     /**
      * 返回一个string类型的数据
+     *
      * @param listners
      * @return
      */
@@ -623,7 +571,7 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
                 if (parameterTypes.length == 2) {
                     return parameterTypes[1].getName();
 
-                }else {
+                } else {
                     System.out.println("parameterTypes.length!=2");
                 }
 
@@ -632,15 +580,16 @@ public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListen
         return null;
     }
 
-	@Override
-	public void onHouseListBack(String seq, ArrayList<HouseInfo> houses) {
+    @Override
+    public void onHouseListBack(String seq, ArrayList<HouseInfo> houses) {
 
-		Consts.getConsts().setHouses(houses);
-	}
+        Consts.getConsts().setHouses(houses);
+    }
 
-	@Override
-	public void consoleOutput(String text) {
-		// TODO Auto-generated method stub
-		System.out.println(text);
-	}
+    @Override
+    public void consoleOutput(String text) {
+        // TODO Auto-generated method stub
+        System.out.println(text);
+    }
+
 }
