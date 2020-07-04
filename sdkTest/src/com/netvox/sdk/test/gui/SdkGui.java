@@ -1,9 +1,10 @@
-package com.netvox.sdk.gui;
+package com.netvox.sdk.test.gui;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,39 +13,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JComboBox;
-import javax.swing.JTextArea;
-import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JList;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import com.netvox.sdk.javassist.AssistClass;
-import com.netvox.sdk.login.Base;
-import com.netvox.sdk.login.LoginHolder;
-import com.netvox.sdk.utils.ClassUtils;
-import com.netvox.sdk.utils.Consts;
+import com.netvox.sdk.test.api.APIHolder;
+import com.netvox.sdk.test.api.Consts;
+import com.netvox.sdk.test.javassist.AssistClass;
+import com.netvox.sdk.test.javassist.TestTemplate;
+import com.netvox.sdk.test.javassist.interfaces.ConsoleListener;
+import com.netvox.sdk.test.javassist.interfaces.LifeCycle;
+import com.netvox.sdk.test.utils.ClassUtils;
 import com.netvox.smarthome.common.api.API;
 import com.netvox.smarthome.common.api.APIImpl;
 import com.netvox.smarthome.common.api.config.Config;
+import com.netvox.smarthome.common.api.event.listener.cloud.OnHouseListListener;
 import com.netvox.smarthome.common.api.model.cloud.HouseInfo;
-
-import javassist.CannotCompileException;
-import javassist.NotFoundException;
-
-import javax.swing.event.ListSelectionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.IOException;
-import java.awt.event.ActionEvent;
 
 /**
  * gui代码区域
@@ -52,23 +44,14 @@ import java.awt.event.ActionEvent;
  * @author Administrator
  */
 @SuppressWarnings("all")
-public class SdkGui extends JFrame {
-
-    // 单例
-    private static SdkGui instance = null;
-
-    public static SdkGui getInstance() {
-        if (instance == null) {
-            instance = new SdkGui();
-        }
-        return instance;
-    }
+public class SdkGui extends JFrame  implements OnHouseListListener,ConsoleListener{
 
     private JPanel contentPane;
     private JTextField ipaddress;
     private JTextField username;
     private JTextField password;
     private JTextField returnValue; // 返回值
+    private LifeCycle testLifeCycle;
 
     public JTextField getReturnValue() {
         return returnValue;
@@ -107,25 +90,10 @@ public class SdkGui extends JFrame {
     private List<JTextField> testList;
 
     // 获取login实例
-    private Base loginExamples = LoginHolder.getInstance();
+    private BaseInfo loginExamples = new BaseInfo();
 
     private API apiHolder = APIImpl.GetInstance();
 
-    /**
-     * main方法，先注释掉
-     */
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					SdkGui frame = new SdkGui();
-//					frame.setVisible(true);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
 
     /**
      * Create the frame.
@@ -301,13 +269,25 @@ public class SdkGui extends JFrame {
                String ListenerMethodParamType =  getListenerParamType(attr);
 //                getListenerParamType
                 // 生成方法并调用
-                AssistClass.creatNewClass(interfaceName, methodList, interPackName, methodName, inputAttr,ListenerMethodParamType);
-
+           try {
+            	   Class clazz = AssistClass.creatNewClass(interfaceName, methodList, interPackName, methodName, inputAttr,ListenerMethodParamType);
+            	   Object testObject = clazz.newInstance();
+            	   TestTemplate tpl = (TestTemplate)testObject;
+            	   testLifeCycle = (LifeCycle)testObject;
+            	   testLifeCycle.init();
+            	   tpl.addConsoleOutputListener(SdkGui.this);
+			} catch (InstantiationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
             }
         });
         addtest.setBounds(503, 622, 93, 38);
         contentPane.add(addtest);
-
+        APIHolder.getInstance().AddListener(this);
     }
 
     /**
@@ -428,7 +408,6 @@ public class SdkGui extends JFrame {
             }
         }
         Collections.reverse(testList);
-//		System.out.println(testList);
 
         // 刷新画面
         this.panel.repaint();
@@ -647,12 +626,21 @@ public class SdkGui extends JFrame {
                 }else {
                     System.out.println("parameterTypes.length!=2");
                 }
-//                for (Method method : methods) {
-//                    //methodList.add(method.getName());
-//                    Class[] parameterTypes = method.getParameterTypes();
-//                }
+
             }
         }
         return null;
     }
+
+	@Override
+	public void onHouseListBack(String seq, ArrayList<HouseInfo> houses) {
+
+		Consts.getConsts().setHouses(houses);
+	}
+
+	@Override
+	public void consoleOutput(String text) {
+		// TODO Auto-generated method stub
+		System.out.println(text);
+	}
 }

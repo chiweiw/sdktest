@@ -1,8 +1,8 @@
-package com.netvox.sdk;
+package com.netvox.sdk.test;
 
 import java.awt.EventQueue;
 
-import com.netvox.sdk.gui.SdkGui;
+import com.netvox.sdk.test.gui.SdkGui;
 
 public class Main {
 	/**
@@ -13,8 +13,7 @@ public class Main {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					SdkGui frame=SdkGui.getInstance();
-					
+					SdkGui frame= new SdkGui();
 					//SdkGui frame = new SdkGui();
 	 				frame.setVisible(true);
 				} catch (Exception e) {

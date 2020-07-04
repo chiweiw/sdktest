@@ -1,4 +1,4 @@
-package com.netvox.sdk.utils;
+package com.netvox.sdk.test.utils;
 
 
 import java.io.File;

@@ -1,10 +1,9 @@
-package com.netvox.sdk.login;
+package com.netvox.sdk.test.gui;
 
 import java.util.ArrayList;
 
-import com.netvox.sdk.api.APIHolder;
-import com.netvox.sdk.gui.SdkGui;
-import com.netvox.sdk.utils.Consts;
+import com.netvox.sdk.test.api.APIHolder;
+import com.netvox.sdk.test.api.Consts;
 import com.netvox.smarthome.common.api.API;
 import com.netvox.smarthome.common.api.config.Config;
 import com.netvox.smarthome.common.api.event.listener.cloud.OnHouseListListener;
@@ -20,7 +19,7 @@ import com.netvox.smarthome.common.api.model.shc.RoomInfo;
  * @author Administrator
  *
  */
-public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomListListener {
+public class BaseInfo implements OnMQTTConnectListener, RoomListListener {
 
 	private API api = APIHolder.getInstance();
 
@@ -33,9 +32,7 @@ public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomLis
 		api.Init();
 		// 添加监听
 		api.AddListener(this);
-		// 设置用户名和密码
-		// Config.getConfig().setUserName(consts.getUSER_NAME());
-		// Config.getConfig().setPassWord(consts.getPASSWORD());
+
 		// 获取用户账号下所有网关
 //		 private String cloudMngIp = "mng.netvoxcloud.com";
 		api.GetAllHomes(1, 0);
@@ -78,16 +75,5 @@ public class Base implements OnHouseListListener, OnMQTTConnectListener, RoomLis
 
 	}
 
-	@Override
-	public void onHouseListBack(String seq, ArrayList<HouseInfo> houses) {
-		// TODO Auto-generated method stub
-		System.out.println(houses);
-
-		SdkGui frame = SdkGui.getInstance();
-		//frame.getReturnValue().setText("22222222222222\n22222222222");
-
-		Consts.getConsts().setHouses(houses);
-
-
-	}
+	
 }

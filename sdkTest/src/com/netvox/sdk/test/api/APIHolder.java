@@ -1,4 +1,4 @@
-package com.netvox.sdk.api;
+package com.netvox.sdk.test.api;
 
 import com.netvox.smarthome.common.api.API;
 import com.netvox.smarthome.common.api.APIImpl;
