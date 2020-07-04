@@ -254,8 +254,8 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
                 List<String> methodList = getListenerMethod(attr);
                 // 接口名称
                 String interfaceName = jListListener.getSelectedValue().toString();
-
-                String interPackName = getInterfacePackageName(interfaceName);
+                //接口package
+                String interPackName = SdkGuiListenerMethods.getInterfacePackageName(interfaceName, cbList, cloudList, shcList);
 
                 List<Object> astrList = new ArrayList<>(testList.size());
                 for (JTextField c : testList) {
@@ -267,7 +267,7 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-                String ListenerMethodParamType = getListenerParamType(attr);
+                String ListenerMethodParamType = SdkGuiListenerMethods.getListenerParamType(attr,cbList,cloudList,shcList);
                 // 生成方法并调用
                 try {
                     Class clazz = AssistClass.creatNewClass(methodList, interPackName, inputAttr, ListenerMethodParamType);
@@ -441,9 +441,9 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
         cloudSets = ClassUtils.getClassName("com.netvox.smarthome.common.api.event.listener.cloud", false);
         shcSets = ClassUtils.getClassName("com.netvox.smarthome.common.api.event.listener.shc", false);
         // 获取类名
-        cbList = getmethodName(cbSets, "cb.");
-        cloudList = getmethodName(cloudSets, "cloud.");
-        shcList = getmethodName(shcSets, "shc.");
+        cbList = SdkGuiListenerMethods.getmethodName(cbSets, "cb.");
+        cloudList = SdkGuiListenerMethods.getmethodName(cloudSets, "cloud.");
+        shcList = SdkGuiListenerMethods.getmethodName(shcSets, "shc.");
         int size = cbList.size() + cloudList.size() + shcList.size();
 
         listenerList = new ArrayList<String>(size);
@@ -454,26 +454,6 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
         return listenerList;
     }
 
-    /**
-     * 传入类的全部地址，返回类名
-     *
-     * @param setssets 一个类的集合
-     * @param type     listener的种类
-     * @return类名称的集合
-     */
-    public static List<String> getmethodName(Set<String> sets, String type) {
-
-        List<String> str = new ArrayList<String>(sets.size());
-
-        if (sets != null) {
-            for (String set : sets) {
-                str.add(set.replace("com.netvox.smarthome.common.api.event.listener." + type, ""));
-            }
-        }
-
-        return str;
-
-    }
 
     /**
      * 根据listener反射获取接口的方法
@@ -512,73 +492,9 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
                 }
             }
         }
-
         return methodList;
     }
 
-    /**
-     * 根据接口名称返回包名
-     *
-     * @param interNmae
-     * @return
-     */
-    private String getInterfacePackageName(String interNmae) {
-        // 反射获取接口
-        if (cbList.contains(interNmae)) {
-            return "com.netvox.smarthome.common.api.event.listener.cb." + interNmae;
-        }
-        if (cloudList.contains(interNmae)) {
-            return "com.netvox.smarthome.common.api.event.listener.cloud." + interNmae;
-        }
-        if (shcList.contains(interNmae)) {
-            return "com.netvox.smarthome.common.api.event.listener.shc." + interNmae;
-
-        }
-        return null;
-    }
-
-
-    /**
-     * 返回一个string类型的数据
-     *
-     * @param listners
-     * @return
-     */
-    private String getListenerParamType(List<String> listners) {
-        Class<?> clazz = null;
-        Method[] methods = null;
-        for (String s : listners) {
-            try {
-                // 反射获取接口
-                if (cbList.contains(s)) {
-                    clazz = Class.forName("com.netvox.smarthome.common.api.event.listener.cb." + s);
-                } else if (cloudList.contains(s)) {
-                    clazz = Class.forName("com.netvox.smarthome.common.api.event.listener.cloud." + s);
-                } else if (shcList.contains(s)) {
-                    clazz = Class.forName("com.netvox.smarthome.common.api.event.listener.shc." + s);
-                }
-
-            } catch (ClassNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            methods = clazz.getMethods();
-            // 将监听的方法传输list
-            if (methods != null) {
-
-                Method method = methods[0];
-                Class[] parameterTypes = method.getParameterTypes();
-                if (parameterTypes.length == 2) {
-                    return parameterTypes[1].getName();
-
-                } else {
-                    System.out.println("parameterTypes.length!=2");
-                }
-
-            }
-        }
-        return null;
-    }
 
     @Override
     public void onHouseListBack(String seq, ArrayList<HouseInfo> houses) {
