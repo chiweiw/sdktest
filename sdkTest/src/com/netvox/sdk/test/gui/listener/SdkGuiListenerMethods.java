@@ -135,22 +135,22 @@ public class SdkGuiListenerMethods {
     public static String getListenerParamType(List<String> listners, List<String> cbList, List<String> cloudList, List<String> shcList) {
         Class<?> clazz = null;
         Method[] methods = null;
-        for (String s : listners) {
-            clazz = getListenreClass(listners, cbList, cloudList, shcList);
-            methods = clazz.getMethods();
-            // 将监听的方法传输list
-            if (methods != null) {
 
-                Method method = methods[0];
-                Class[] parameterTypes = method.getParameterTypes();
-                if (parameterTypes.length == 2) {
-                    return parameterTypes[1].getName();
+        clazz = getListenreClass(listners, cbList, cloudList, shcList);
+        methods = clazz.getMethods();
+        // 将监听的方法传输list
+        if (methods != null) {
 
-                } else {
-                    System.out.println("parameterTypes.length!=2");
-                }
+            Method method = methods[0];
+            Class[] parameterTypes = method.getParameterTypes();
+            if (parameterTypes.length == 2) {
+                return parameterTypes[1].getName();
+
+            } else {
+                System.out.println("parameterTypes.length!=2");
             }
         }
+
         return null;
     }
 
@@ -166,6 +166,10 @@ public class SdkGuiListenerMethods {
      */
     public static Class getListenreClass(List<String> listners, List<String> cbList, List<String> cloudList, List<String> shcList) {
         Class<?> clazz = null;
+
+        if (listners.size() != 1) {
+            return null;
+        }
         for (String s : listners) {
             try {
                 // 反射获取接口
@@ -186,4 +190,28 @@ public class SdkGuiListenerMethods {
         return clazz;
     }
 
+    /**
+     * 根据listener反射获取接口的方法
+     */
+    public static List<String> getListenerMethod(List<String> listenerList, List<String> cbList, List<String> cloudList, List<String> shcList) {
+        if (listenerList == null || listenerList.size() == 0) {
+            return null;
+        }
+
+        // 所有listener的方法，返回用
+        List<String> methodList = new ArrayList<>(listenerList.size());
+        Class<?> clazz = null;
+        Method[] methods = null;
+
+        clazz = getListenreClass(listenerList, cbList, cloudList, shcList);
+        methods = clazz.getMethods();
+        // 将监听的方法传输list
+        if (methods != null) {
+            for (Method method : methods) {
+                methodList.add(method.getName());
+            }
+        }
+
+        return methodList;
+    }
 }

@@ -14,7 +14,6 @@ public class Main {
 			public void run() {
 				try {
 					SdkGui frame= new SdkGui();
-					//SdkGui frame = new SdkGui();
 	 				frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -6,12 +6,13 @@ import com.netvox.smarthome.common.api.model.dev.Device;
 
 public class DeviceListTest extends TestTemplate implements DeviceInfoListener {
 
-	public void onDeviceInfoBack(String paramString, Device paramDevice) {
-		fireEvent(paramString);
-	}
+    @Override
+    public void onDeviceInfoBack(String paramString, Device paramDevice) {
+        fireEvent(paramDevice.toString());
+    }
 
-	public void sendRequest(String paramString) {
-		APIHolder.getInstance().Arm(paramString);
-	}
+    public void sendRequest(String paramString) {
+        APIHolder.getInstance().Arm(paramString);
+    }
 
 }

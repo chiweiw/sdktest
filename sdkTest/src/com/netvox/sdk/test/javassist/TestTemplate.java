@@ -33,10 +33,7 @@ public class TestTemplate implements LifeCycle,IListener {
 
 	public void removeConsoleOutputListener(ConsoleListener listener)
 	{
-		if(consoleListeners.contains(listener))
-		{
-			consoleListeners.remove(listener);
-		}
+		consoleListeners.remove(listener);
 	}
 	
 	public void removeAllConsoleOutputListener()
@@ -44,11 +41,11 @@ public class TestTemplate implements LifeCycle,IListener {
 		consoleListeners.clear();
 	}
 	
-	public void fireEvent(String text)
+	public void fireEvent(Object res)
 	{
 		for(ConsoleListener listener : consoleListeners)
 		{
-			listener.consoleOutput(text);
+			listener.consoleOutput(res);
 		}
 	}
 
