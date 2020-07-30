@@ -2,12 +2,14 @@ package com.netvox.sdk.test.javassist;
 
 import java.io.IOException;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.netvox.sdk.test.gui.SdkGui;
 
+import com.netvox.smarthome.common.api.framework.annotation.Listener;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -23,27 +25,26 @@ import javassist.NotFoundException;
  */
 public class AssistClass {
 
-    private static HashMap<String,Class> ClassCache = new HashMap<>();
+    private static HashMap<String, Class> ClassCache = new HashMap<>();
 
 
     /**
      * 动态生成类
      *
-     * @param methods                 接口方法的集合，只有一个方法
+     * @param listenerMethodName      接口方法名称
      * @param package_                接口的packageName
      * @param methodName              api的方法名称
      * @param inputAttr               用户输入的方法名称
      * @param listenerMethodParamType 接口方法第二个参数的类型
      */
-    public static Class creatNewClass(List<String> methods, String package_, String methodName, List<Map<String, Object>> inputAttr,
+    public static Class creatNewClass(String listenerMethodName, String package_, String methodName, List<Map<String, Object>> inputAttr,
                                       String listenerMethodParamType) {
-        if (methods == null || package_ == null) {
+        if (listenerMethodName == null || package_ == null) {
             return null;
         }
         String className = "com.netvox.sdk.test.javassist.Apiassist$" + methodName;
         Class retClass = ClassCache.get(className);
-        if(retClass!=null)
-        {
+        if (retClass != null) {
             return retClass;
         }
 
@@ -54,9 +55,9 @@ public class AssistClass {
 
         CtClass clazz;
         try {
-            clazz = pool.get("com.netvox.sdk.test.javassist.Apiassist$" + methodName);
+            clazz = pool.get("com.netvox.sdk.test.gen.Apiassist$" + methodName);
             retClass = clazz.toClass();
-            ClassCache.put(className,retClass);
+            ClassCache.put(className, retClass);
             return retClass;
         } catch (NotFoundException e1) {
 
@@ -67,7 +68,8 @@ public class AssistClass {
 
                 // 获取要继承的类
                 CtClass clazz1 = pool.get("com.netvox.sdk.test.javassist.TestTemplate");
-                clazz = pool.makeClass("com.netvox.sdk.test.javassist.Apiassist$" + methodName);
+//                com.netvox.sdk.test.gen
+                clazz = pool.makeClass("com.netvox.sdk.test.gen.Apiassist$" + methodName);
                 // 继承公有类methods
                 clazz.setSuperclass(clazz1);
 
@@ -75,11 +77,11 @@ public class AssistClass {
                 clazz.setInterfaces(new CtClass[]{pool.makeInterface(package_)});
 
                 // 接口的实现类，将值传递给方法
-                for (String method : methods) {
-                    CtMethod eat = CtNewMethod.make("public void " + method + "(String seq," + listenerMethodParamType
-                            + " arr){\n" + "fireEvent((Object)arr);\n" + " }", clazz);
-                    clazz.addMethod(eat);
-                }
+
+                CtMethod eat = CtNewMethod.make("public void " + listenerMethodName + "(String seq," + listenerMethodParamType
+                        + " arr){\n" + "fireEvent((Object)arr);\n" + " }", clazz);
+                clazz.addMethod(eat);
+
 
                 // api调用的方法
                 String genMethod = generateMethod(methodName, inputAttr);
@@ -90,9 +92,9 @@ public class AssistClass {
                 clazz.addMethod(apiUse);
 
                 // 将生成的.class文件保存到磁盘
-                clazz.writeFile();
+//                clazz.writeFile();
                 retClass = clazz.toClass();
-                ClassCache.put(className,retClass);
+                ClassCache.put(className, retClass);
                 return retClass;
             } catch (NotFoundException e) {
                 // TODO Auto-generated catch block
@@ -100,10 +102,12 @@ public class AssistClass {
             } catch (CannotCompileException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
+            //catch (IOException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+//
         } catch (CannotCompileException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -125,8 +129,7 @@ public class AssistClass {
         }
         StringBuffer method = new StringBuffer("public void  invoke(");
         // com.netvox.smarthome.common.api.API
-        StringBuffer apiRequest = new StringBuffer(
-                "\ncom.netvox.sdk.test.api.APIHolder.getInstance()." + methodName + "(");
+        StringBuffer apiRequest = new StringBuffer("com.netvox.sdk.test.api.APIHolder.getInstance()." + methodName + "(");
 
         // 生成方法主体
         for (int i = 0; i < attr.size(); i++) {
@@ -139,7 +142,8 @@ public class AssistClass {
                 case "String":
                     method.append("String arg" + i);
                     break;
-                case "ArrayList<String>":
+//                case "List":
+//                    method.append("List arg" + i);
 
             }
             apiRequest.append("arg" + i);
@@ -159,4 +163,49 @@ public class AssistClass {
 
     }
 
+
+    /**
+     * 用户选中的方法
+     *
+     * @param method
+     * @return
+     */
+//    @Test
+    public static Class creatNewClass(Method method, List<Map<String, Object>> inputAttr) {
+
+        if (method == null) {
+            return null;
+        }
+
+        if (method.isAnnotationPresent(Listener.class)) {
+            Listener listener = (Listener) method.getAnnotation(Listener.class);
+            String listenerName = listener.listener()[0];
+            Class<?> tClass;
+            try {
+
+                listenerName = listenerName.replace(" ", "");
+                tClass = Class.forName(listenerName);
+                Method[] methods = tClass.getMethods();
+                if (methods.length != 1) {
+                    throw new ClassNotFoundException(" input class has two methods,need one method class");
+                }
+                if (methods[0].getParameterTypes().length != 2) {
+                    throw new ClassNotFoundException(" input class methods,need one method class");
+                }
+                String listenerMethodName = methods[0].getName();
+
+                String ListenerMethodSecondParamName = methods[0].getParameterTypes()[1].getName();
+                return creatNewClass(listenerMethodName, listenerName, method.getName(), inputAttr, ListenerMethodSecondParamName);
+
+
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+
+
+        return null;
+    }
 }

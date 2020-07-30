@@ -1,22 +1,20 @@
 package com.netvox.sdk.test.gui.listener;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import javax.swing.JList;
 import javax.swing.JTextField;
 
 import com.netvox.smarthome.common.api.config.Config;
+import com.netvox.smarthome.common.api.framework.annotation.Listener;
 
 public class SdkGuiListenerMethods {
 
-    private static String cbPackage = "com.netvox.smarthome.common.api.event.listener.cb.";
-    private static String cloudPackage = "com.netvox.smarthome.common.api.event.listener.cloud.";
-    private static String shcPackage = "com.netvox.smarthome.common.api.event.listener.shc.";
 
     /**
      * 返回指定class的所有方法
@@ -31,9 +29,14 @@ public class SdkGuiListenerMethods {
             Method[] methods = clazz.getMethods();
 
             for (Method method : methods) {
+
+
                 attrList.add(method.getName());
+
+
             }
             Collections.sort(attrList);
+
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -43,29 +46,33 @@ public class SdkGuiListenerMethods {
     }
 
 
-    /**
-     * 传入类的全部地址，返回类名
-     *
-     * @param sets 一个类的集合
-     * @param type listener的种类
-     * @return类名称的集合
-     */
-    public static List<String> getmethodName(Set<String> sets, String type) {
+    public static void writeFile(List<String> methods) {
 
-        List<String> str = new ArrayList<String>(sets.size());
+        try {
+            File file = new File("api1.txt");
 
-        if (sets != null) {
-            for (String set : sets) {
-                str.add(set.replace("com.netvox.smarthome.common.api.event.listener." + type, ""));
+            if (!file.exists()) {
+                file.createNewFile();
             }
+            FileWriter fileWritter = new FileWriter(file.getName(), true);
+
+            for (String me : methods) {
+                fileWritter.write(me + "\n\t");
+            }
+
+
+            fileWritter.close();
+
+
+        } catch (Exception e) {
+
         }
 
-        return str;
 
     }
 
     /**
-     * 登录
+     * 设置登录信息
      */
     public static void setloginInfo(String ipaddress, String username, String password) {
 
@@ -100,118 +107,30 @@ public class SdkGuiListenerMethods {
         return input;
     }
 
+
     /**
-     * 根据接口名称返回包名
+     * 返回方法
      *
-     * @param interNmae
+     * @param methodName
      * @return
      */
-    public static String getInterfacePackageName(String interNmae, List<String> cbList, List<String> cloudList, List<String> shcList) {
-        // 反射获取接口
-        if (cbList.contains(interNmae)) {
-            return cbPackage + interNmae;
+    public static Method getMethodByName(String calaaName, String methodName) {
+        Class<?> clazz = null;
+        Method[] methods;
+        try {
+            clazz = Class.forName(calaaName);
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        if (cloudList.contains(interNmae)) {
-            return cloudPackage + interNmae;
-        }
-        if (shcList.contains(interNmae)) {
-            return shcPackage + interNmae;
 
+        methods = clazz.getMethods();
+
+        for (Method method : methods) {
+            if (method.getName().equals(methodName)) {
+                return method;
+            }
         }
         return null;
-    }
-
-
-    /**
-     * 根据listener返回第二个参数的类型
-     * 返回一个string类型的数据
-     *
-     * @param listners
-     * @param cbList
-     * @param cloudList
-     * @param shcList
-     * @return
-     */
-    public static String getListenerParamType(List<String> listners, List<String> cbList, List<String> cloudList, List<String> shcList) {
-        Class<?> clazz = null;
-        Method[] methods = null;
-
-        clazz = getListenreClass(listners, cbList, cloudList, shcList);
-        methods = clazz.getMethods();
-        // 将监听的方法传输list
-        if (methods != null) {
-
-            Method method = methods[0];
-            Class[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length == 2) {
-                return parameterTypes[1].getName();
-
-            } else {
-                System.out.println("parameterTypes.length!=2");
-            }
-        }
-
-        return null;
-    }
-
-
-    /**
-     * 获取listerer所在的class
-     *
-     * @param listners
-     * @param cbList
-     * @param cloudList
-     * @param shcList
-     * @return
-     */
-    public static Class getListenreClass(List<String> listners, List<String> cbList, List<String> cloudList, List<String> shcList) {
-        Class<?> clazz = null;
-
-        if (listners.size() != 1) {
-            return null;
-        }
-        for (String s : listners) {
-            try {
-                // 反射获取接口
-                if (cbList.contains(s)) {
-                    clazz = Class.forName(cbPackage + s);
-                } else if (cloudList.contains(s)) {
-                    clazz = Class.forName(cloudPackage + s);
-                } else if (shcList.contains(s)) {
-                    clazz = Class.forName(shcPackage + s);
-                }
-
-            } catch (ClassNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-        }
-        return clazz;
-    }
-
-    /**
-     * 根据listener反射获取接口的方法
-     */
-    public static List<String> getListenerMethod(List<String> listenerList, List<String> cbList, List<String> cloudList, List<String> shcList) {
-        if (listenerList == null || listenerList.size() == 0) {
-            return null;
-        }
-
-        // 所有listener的方法，返回用
-        List<String> methodList = new ArrayList<>(listenerList.size());
-        Class<?> clazz = null;
-        Method[] methods = null;
-
-        clazz = getListenreClass(listenerList, cbList, cloudList, shcList);
-        methods = clazz.getMethods();
-        // 将监听的方法传输list
-        if (methods != null) {
-            for (Method method : methods) {
-                methodList.add(method.getName());
-            }
-        }
-
-        return methodList;
     }
 }

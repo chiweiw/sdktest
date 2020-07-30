@@ -19,22 +19,24 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.gson.Gson;
 import com.netvox.sdk.test.api.APIHolder;
-import com.netvox.sdk.test.api.Consts;
+
 import com.netvox.sdk.test.gui.listener.SdkGuiListenerMethods;
 import com.netvox.sdk.test.javassist.AssistClass;
 import com.netvox.sdk.test.javassist.TestTemplate;
 import com.netvox.sdk.test.javassist.interfaces.ConsoleListener;
 import com.netvox.sdk.test.javassist.interfaces.LifeCycle;
-import com.netvox.sdk.test.utils.ClassUtils;
+
 import com.netvox.smarthome.common.api.API;
 import com.netvox.smarthome.common.api.APIImpl;
 import com.netvox.smarthome.common.api.config.Config;
 import com.netvox.smarthome.common.api.event.listener.cloud.OnHouseListListener;
 import com.netvox.smarthome.common.api.model.cloud.HouseInfo;
-import org.json.JSONObject;
-import org.json.JSONString;
+
 
 /**
  * gui代码区域
@@ -48,8 +50,9 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
     private JTextField ipaddress;
     private JTextField username;
     private JTextField password;
-    private JTextField returnValue; // 返回值
-    private LifeCycle testLifeCycle; //声明一个生命周期接口
+    private JTextArea returnValue; // 返回值
+
+    private LifeCycle testLifeCycle; // 声明一个生命周期接口
 
     private JTextField textField;
     private JTextField textField_1;
@@ -59,7 +62,6 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
     private JTextField textField_5;
     private JPanel panel;
     private JList jMethodList;
-    private JList jListListener;// 所有监听的集合
     private JComboBox houseIeeeList;
     private List<String> methodList;// 所有方法
     private Set<String> cbSets;// com.netvox.smarthome.common.api.event.listener.cb 下的所有监听类
@@ -71,6 +73,12 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
     private List<String> listenerList;// 所有listener类名称的集合
     private Set<String> selcetListenerSet = new HashSet<String>();// 被选中listener的集合
     private JButton addtest;// 点击测试
+
+    private int baseLabelX = 10;
+    private int baseLabelY = 42;
+
+    private int baseTextFieldX = 134;
+    private int baseTextFieldY = 39;
 
     private List<HouseInfo> houseInfoList;
 
@@ -84,44 +92,45 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
     private BaseInfo loginExamples = new BaseInfo();
 
     private API apiHolder = APIImpl.GetInstance();
+    private JTextField textField_6;
 
     /**
      * Create the frame.
      */
     public SdkGui() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 698, 722);
+        setBounds(100, 100, 774, 781);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
         contentPane.setLayout(null);
 
         JLabel lblNewLabel = new JLabel("Ip 地址");
-        lblNewLabel.setBounds(421, 45, 73, 18);
+        lblNewLabel.setBounds(487, 45, 60, 18);
         contentPane.add(lblNewLabel);
 
         ipaddress = new JTextField();
-        ipaddress.setBounds(504, 44, 149, 21);
+        ipaddress.setBounds(568, 44, 149, 21);
         ipaddress.setText("mng.netvoxcloud.com");
         contentPane.add(ipaddress);
         ipaddress.setColumns(10);
 
         JLabel lblNewLabel_1 = new JLabel("用 户 名");
-        lblNewLabel_1.setBounds(421, 89, 54, 15);
+        lblNewLabel_1.setBounds(487, 89, 54, 15);
         contentPane.add(lblNewLabel_1);
 
         username = new JTextField();
-        username.setBounds(504, 86, 149, 21);
+        username.setBounds(568, 86, 149, 21);
         username.setText("13215929890");
         contentPane.add(username);
         username.setColumns(10);
 
         JLabel lblNewLabel_2 = new JLabel("密  码");
-        lblNewLabel_2.setBounds(421, 130, 54, 15);
+        lblNewLabel_2.setBounds(487, 130, 54, 15);
         contentPane.add(lblNewLabel_2);
 
         password = new JTextField();
-        password.setBounds(504, 127, 149, 21);
+        password.setBounds(568, 127, 149, 21);
         password.setText("123456");
         contentPane.add(password);
         password.setColumns(10);
@@ -136,11 +145,11 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
                 loginExamples.execute();
             }
         });
-        login.setBounds(421, 171, 73, 23);
+        login.setBounds(482, 167, 73, 23);
         contentPane.add(login);
         // 网关
         houseIeeeList = new JComboBox();
-        houseIeeeList.setBounds(504, 204, 168, 21);
+        houseIeeeList.setBounds(569, 204, 168, 21);
         contentPane.add(houseIeeeList);
         houseIeeeList.addItemListener(new ItemListener() {
             // 选项改变的监听
@@ -161,26 +170,17 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
             }
         });
 
-        JButton uodateHouseieee = new JButton("更新网关列表");
-        uodateHouseieee.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        uodateHouseieee.setBounds(537, 171, 116, 23);
-        contentPane.add(uodateHouseieee);
-
         JLabel lblNewLabel_3 = new JLabel("网关列表");
-        lblNewLabel_3.setBounds(425, 207, 54, 15);
+        lblNewLabel_3.setBounds(493, 207, 54, 15);
         contentPane.add(lblNewLabel_3);
 
         // 参数列表
         panel = new JPanel();
         panel.setToolTipText("参数列表");
-        panel.setBounds(421, 253, 232, 359);
+        panel.setBounds(192, 45, 281, 396);
         contentPane.add(panel);
         panel.setLayout(null);
+
 
         // 方法列表
         jMethodList = new JList();
@@ -198,7 +198,7 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
 
             }
         });
-        jMethodList.setBounds(10, 32, 181, 424);
+        jMethodList.setBounds(229, -110, 181, 424);
         contentPane.add(jMethodList);
 
         // jMethodList 添加滚动条
@@ -206,86 +206,60 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
         jsp.setBounds(5, 28, 181, 424);
         contentPane.add(jsp);
 
-        // 获取所有监听类
-        initListenerList();
-        // 所有监听的集合
-        jListListener = new JList();
-        jListListener.setListData(listenerList.toArray());
-        jListListener.setBounds(221, 195, 173, 261);
-        contentPane.add(jListListener);
-
-        JScrollPane listenerScroll = new JScrollPane(jListListener);
-        listenerScroll.setBounds(216, 190, 173, 261);
-        contentPane.add(listenerScroll);
-
-        // 返回值的显示
-        returnValue = new JTextField();
-        returnValue.setBounds(10, 510, 346, 135);
-//        returnValue.setWordWrap(true);
-        contentPane.add(returnValue);
-        returnValue.setColumns(10);
-
-
         // 生成类并测试
         addtest = new JButton("测 试");
         addtest.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                //清空返回
+                // 清空返回
                 returnValue.setText("");
 
-                List<String> attr = new ArrayList<String>();
-                attr.add(jListListener.getSelectedValue().toString());
-                // 方法名称
-                List<String> methodList = SdkGuiListenerMethods.getListenerMethod(attr, cbList, cloudList, shcList);
-                // 接口名称
-                String interfaceName = jListListener.getSelectedValue().toString();
-                //接口package
-                String interPackName = SdkGuiListenerMethods.getInterfacePackageName(interfaceName, cbList, cloudList, shcList);
-
+                // 方法动态参数
                 List<Object> astrList = new ArrayList<>(testList.size());
                 for (JTextField c : testList) {
                     astrList.add(c.getText());
                 }
+
                 try {
-                    //将input中的数据填充到
+                    // 将input中的数据填充到
                     inputAttr = SdkGuiListenerMethods.addinput(inputAttr, testList);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-                String ListenerMethodParamType = SdkGuiListenerMethods.getListenerParamType(attr, cbList, cloudList, shcList);
                 // 生成方法并调用
                 try {
-                    Class clazz = AssistClass.creatNewClass(methodList, interPackName, methodName, inputAttr, ListenerMethodParamType);
+                    Method method = SdkGuiListenerMethods.getMethodByName("com.netvox.smarthome.common.api.API",
+                            methodName);
+                    Class clazz = AssistClass.creatNewClass(method, inputAttr);
 
                     // new一个对象
                     Object testObject = clazz.newInstance();
                     // 获取被调用的对象
                     TestTemplate tpl = (TestTemplate) testObject;
-                    // 初始化模板
-                    testLifeCycle = (LifeCycle) testObject;
                     //
+                    testLifeCycle = (LifeCycle) testObject;
+                    //初始化模板 添加初始监听
                     testLifeCycle.init();
-                    //添加监听
+                    // 添加监听，如果没有添加skd自身监听，就添加
                     tpl.addConsoleOutputListener(SdkGui.this);
 
                     // 调用
                     Method methods[] = clazz.getMethods();
                     for (int i = 0; i < methods.length; i++) {
-                        //找到名称为invoke的方法
+                        // 找到名称为invoke的方法
                         if (methods[i].getName().equals("invoke")) {
 
                             Object[] args = new Object[inputAttr.size()];
                             for (int j = 0; j < inputAttr.size(); j++) {
-                                //将参数输入
+                                // 将参数输入
                                 args[j] = inputAttr.get(j).get("param");
                                 if (inputAttr.get(j).get("paramType").equals("int")) {
                                     args[j] = Integer.parseInt(inputAttr.get(j).get("param").toString());
                                 }
                             }
                             try {
-                                //调用方法
+                                // 调用方法
                                 methods[i].invoke(testObject, args);
                             } catch (InvocationTargetException ex) {
                                 ex.printStackTrace();
@@ -301,8 +275,26 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
                 }
             }
         });
-        addtest.setBounds(503, 622, 93, 38);
+        addtest.setBounds(551, 325, 93, 38);
         contentPane.add(addtest);
+
+        JScrollPane scrollPane_1 = new JScrollPane();
+        scrollPane_1.setBounds(32, 474, 705, 246);
+        contentPane.add(scrollPane_1);
+
+        returnValue = new JTextArea();
+        returnValue.setBounds(32, 474, 705, 246);
+        returnValue.setLineWrap(true); // 激活自动换行功能
+        returnValue.setWrapStyleWord(true); // 激活断行不断字功能
+        //    contentPane.add(returnValue);
+        scrollPane_1.setViewportView(returnValue);
+
+
+        JButton btnNewButton = new JButton("退出");
+        btnNewButton.setBounds(610, 167, 81, 23);
+        contentPane.add(btnNewButton);
+
+
         API api = APIHolder.getInstance();
         api.Init();
         api.AddListener(SdkGui.this);
@@ -342,10 +334,12 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
                     if (c.getName().contains(".")) {
                         // 截取最后一段
                         map1.put("paramType", c.getName().substring(1 + c.getName().lastIndexOf(".")));
+
                     } else {
                         map1.put("paramType", c.getName());
                     }
-                    System.out.println(map1);
+                    //输入参数的完整名称
+                    map1.put("paramCompleteType",c.getName());
                     inputAttr.add(map1);
                 }
                 // 参数名称
@@ -359,65 +353,67 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
                 switch (count) {
                     case 6:
                         JLabel lblNewLabel_9 = new JLabel(parameterNames[5]);
-                        lblNewLabel_9.setBounds(10, 275, 80, 15);
+                        lblNewLabel_9.setBounds(baseLabelX, baseLabelY + 250, 114, 15);
                         panel.add(lblNewLabel_9);
 
                         textField_5 = new JTextField();
-                        textField_5.setBounds(97, 272, 81, 21);
+                        textField_5.setBounds(baseTextFieldX, baseTextFieldY + 250, 137, 21);
                         panel.add(textField_5);
                         textField_5.setColumns(10);
                         testList.add(textField_5);
 
                     case 5:
                         JLabel lblNewLabel_8 = new JLabel(parameterNames[4]);
-                        lblNewLabel_8.setBounds(10, 225, 80, 15);
+                        lblNewLabel_8.setBounds(baseLabelX, baseLabelY + 200, 114, 15);
                         panel.add(lblNewLabel_8);
 
                         textField_4 = new JTextField();
-                        textField_4.setBounds(97, 222, 81, 21);
+                        textField_4.setBounds(baseTextFieldX, baseTextFieldY + 200, 137, 21);
                         panel.add(textField_4);
                         textField_4.setColumns(10);
                         testList.add(textField_4);
                     case 4:
                         JLabel lblNewLabel_7 = new JLabel(parameterNames[3]);
-                        lblNewLabel_7.setBounds(10, 175, 81, 15);
+                        lblNewLabel_7.setBounds(baseLabelX, baseLabelY + 150, 114, 15);
                         panel.add(lblNewLabel_7);
 
                         textField_3 = new JTextField();
-                        textField_3.setBounds(97, 172, 81, 21);
+                        textField_3.setBounds(baseTextFieldX, baseTextFieldY + 150, 137, 21);
                         panel.add(textField_3);
                         textField_3.setColumns(10);
                         testList.add(textField_3);
                     case 3:
                         JLabel lblNewLabel_6 = new JLabel(parameterNames[2]);
-                        lblNewLabel_6.setBounds(10, 125, 81, 15);
+                        lblNewLabel_6.setBounds(baseLabelX, baseLabelY + 100, 114, 15);
                         panel.add(lblNewLabel_6);
 
                         textField_2 = new JTextField();
-                        textField_2.setBounds(97, 122, 81, 21);
+                        textField_2.setBounds(baseTextFieldX, baseTextFieldY + 100, 137, 21);
                         panel.add(textField_2);
                         textField_2.setColumns(10);
                         testList.add(textField_2);
                     case 2:
                         JLabel lblNewLabel_5 = new JLabel(parameterNames[1]);
-                        lblNewLabel_5.setBounds(10, 75, 81, 15);
+                        lblNewLabel_5.setBounds(baseLabelX, baseLabelY + 50, 114, 15);
                         panel.add(lblNewLabel_5);
 
                         textField_1 = new JTextField();
-                        textField_1.setBounds(97, 72, 81, 21);
+                        textField_1.setBounds(baseTextFieldX, baseTextFieldY + 50, 137, 21);
                         panel.add(textField_1);
                         textField_1.setColumns(10);
                         testList.add(textField_1);
                     case 1:
+
                         JLabel lblNewLabel_4 = new JLabel(parameterNames[0]);
-                        lblNewLabel_4.setBounds(10, 24, 150, 15);
+                        lblNewLabel_4.setBounds(baseLabelX, baseLabelY, 114, 15);
                         panel.add(lblNewLabel_4);
 
-                        textField = new JTextField();
-                        textField.setBounds(97, 21, 81, 21);
-                        panel.add(textField);
-                        textField.setColumns(10);
-                        testList.add(textField);
+                        textField_6 = new JTextField();
+                        textField_6.setBounds(baseTextFieldX, baseTextFieldY, 137, 21);
+                        panel.add(textField_6);
+                        textField_6.setColumns(10);
+                        testList.add(textField_6);
+
                     case 0:
                         break;
 
@@ -430,33 +426,6 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
         this.panel.repaint();
 
     }
-
-
-    /**
-     * 初始化listener方法
-     *
-     * @return 一个3个listener的集合
-     */
-
-    private List<String> initListenerList() {
-        // 获取包下的所有类
-        cbSets = ClassUtils.getClassName("com.netvox.smarthome.common.api.event.listener.cb", false);
-        cloudSets = ClassUtils.getClassName("com.netvox.smarthome.common.api.event.listener.cloud", false);
-        shcSets = ClassUtils.getClassName("com.netvox.smarthome.common.api.event.listener.shc", false);
-        // 获取类名
-        cbList = SdkGuiListenerMethods.getmethodName(cbSets, "cb.");
-        cloudList = SdkGuiListenerMethods.getmethodName(cloudSets, "cloud.");
-        shcList = SdkGuiListenerMethods.getmethodName(shcSets, "shc.");
-        int size = cbList.size() + cloudList.size() + shcList.size();
-
-        listenerList = new ArrayList<String>(size);
-        listenerList.addAll(cbList);
-        listenerList.addAll(cloudList);
-        listenerList.addAll(shcList);
-        Collections.sort(listenerList);
-        return listenerList;
-    }
-
 
     /**
      * 获取list集合的返回
@@ -478,15 +447,23 @@ public class SdkGui extends JFrame implements OnHouseListListener, ConsoleListen
         }
     }
 
+    /**
+     * 将返回显示在文本框上
+     *
+     * @param arr
+     */
     @Override
     public void consoleOutput(Object arr) {
 
-        System.out.println(arr);
+        //gson转化为json类型
         Gson gson = new Gson();
-        String res = gson.toJson(arr);
+        String res1 = gson.toJson(arr);
+        //json格式化
+        JSONArray object = JSONArray.parseArray(res1);
+        String res = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
+                SerializerFeature.WriteDateUseDateFormat);
 
         returnValue.setText(res);
 
     }
-
 }
